@@ -44,4 +44,19 @@ class Transaction extends Model
     {
         return $this->hasMany(TransactionItem::class);
     }
+
+    // scope untuk mengambil data is_expense dari category
+    public function scopeExpenses($query)
+    {
+        return $query->whereHas('category', function ($query) {
+            $query->where('is_expense', true);
+        });
+    }
+
+    public function scopeIncomes($query)
+    {
+        return $query->whereHas('category', function ($query) {
+            $query->where('is_expense', false);
+        });
+    }
 }
