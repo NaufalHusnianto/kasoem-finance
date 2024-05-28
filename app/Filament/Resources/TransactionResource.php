@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\TransactionResource\Actions\ExportTransactionsToPdf;
 use App\Filament\Resources\TransactionResource\Pages;
 use App\Filament\Resources\TransactionResource\RelationManagers;
 use App\Models\Product;
@@ -187,6 +188,7 @@ class TransactionResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                ExportTransactionsToPdf::make('exportTransactionsToPdf')->color('success'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
