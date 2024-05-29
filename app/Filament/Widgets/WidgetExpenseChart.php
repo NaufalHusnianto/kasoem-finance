@@ -3,12 +3,15 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Transaction;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\ChartWidget;
 use Flowframe\Trend\Trend;
 use Flowframe\Trend\TrendValue;
 
 class WidgetExpenseChart extends ChartWidget
 {
+    use HasWidgetShield;
+
     protected static ?string $heading = 'Pengeluaran per bulan';
 
     protected static string $color = 'danger';

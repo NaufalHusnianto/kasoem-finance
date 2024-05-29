@@ -17,7 +17,6 @@ class Transaction extends Model
         'amount',
         'note',
         'image',
-        
         'user_id',
         'customer_id',
         'number',
@@ -32,7 +31,9 @@ class Transaction extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id')->whereHas('roles', function($query) {
+            $query->where('name', 'Karyawan');
+        });
     }
 
     public function customer(): BelongsTo

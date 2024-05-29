@@ -4,11 +4,14 @@ namespace App\Filament\Widgets;
 
 use App\Models\Customer;
 use App\Models\Transaction;
+use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class StatsOverview extends BaseWidget
 {
+    use HasWidgetShield;
+
     protected function getStats(): array
     {
         $income = Transaction::incomes()->get()->sum('amount');  //mengambil data pemasukan dari transaction

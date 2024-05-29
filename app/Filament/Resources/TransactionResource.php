@@ -7,6 +7,7 @@ use App\Filament\Resources\TransactionResource\Pages;
 use App\Filament\Resources\TransactionResource\RelationManagers;
 use App\Models\Product;
 use App\Models\Transaction;
+use App\Models\Category;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -15,7 +16,10 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class TransactionResource extends Resource
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
+use Illuminate\Support\Facades\Auth;
+
+class TransactionResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Transaction::class;
 
@@ -23,6 +27,9 @@ class TransactionResource extends Resource
 
     public static function form(Form $form): Form
     {
+        $user = Auth::user();
+        $isKaryawan = $user && $user->hasRole('Karyawan');
+
         return $form
             ->schema([
                 Forms\Components\Group::make([
@@ -34,6 +41,13 @@ class TransactionResource extends Resource
                             ->relationship('category', 'name')
                             ->required()
                             ->reactive()
+                            ->options(function () use ($isKaryawan) {
+                                $query = Category::query();
+                                if ($isKaryawan) {
+                                    $query->where('name', 'Pesanan');
+                                }
+                                return $query->pluck('name', 'id');
+                            })
                             ->afterStateHydrated(function ($state, callable $set) {
                                 $category = \App\Models\Category::find($state);
                                 $set('is_order', $category ? $category->name === 'Pesanan' : false);
@@ -60,9 +74,14 @@ class TransactionResource extends Resource
                     Forms\Components\Wizard\Step::make('Pesanan')
                         ->schema([
                             Forms\Components\Select::make('user_id')
-                                ->relationship('user', 'name'),
+                                ->relationship('user', 'name')
+                                ->default($user->id)
+                                ->options([
+                                    $user->id => $user->name,
+                                ]),
                             Forms\Components\Select::make('customer_id')
-                                ->relationship('customer', 'name'),
+                                ->relationship('customer', 'name')
+                                ->searchable(),
                             Forms\Components\TextInput::make('number')
                                 ->default('OR-' . random_int(100000, 9999999))
                                 ->disabled()
@@ -144,6 +163,14 @@ class TransactionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(function (Builder $query) {
+                $isKaryawan = Auth::user()->hasRole('Karyawan');
+
+                if ($isKaryawan) {
+                    $userId = Auth::user()->id;
+                    $query->where('user_id', $userId);
+                }
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
@@ -160,12 +187,14 @@ class TransactionResource extends Resource
                 Tables\Columns\TextColumn::make('amount')
                     ->numeric()
                     ->sortable(),
-                // Tables\Columns\TextColumn::make('user.name')
-                //     ->numeric()
-                //     ->sortable(),
-                // Tables\Columns\TextColumn::make('customer.name')
-                //     ->numeric()
-                //     ->sortable(),
+                Tables\Columns\TextColumn::make('user.name')
+                    ->numeric()
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: false),
+                Tables\Columns\TextColumn::make('customer.name')
+                    ->numeric()
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 // Tables\Columns\TextColumn::make('number')
                 //     ->searchable(),
                 // Tables\Columns\TextColumn::make('pay_amount')
@@ -210,6 +239,18 @@ class TransactionResource extends Resource
             'index' => Pages\ListTransactions::route('/'),
             'create' => Pages\CreateTransaction::route('/create'),
             'edit' => Pages\EditTransaction::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
         ];
     }
 }
