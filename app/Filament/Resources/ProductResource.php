@@ -48,6 +48,9 @@ class ProductResource extends Resource implements HasShieldPermissions
                             ->required()
                             ->numeric()
                             ->prefix('Rp.'),
+                        Forms\Components\TextInput::make('stock')
+                            ->required()
+                            ->numeric()
                     ]),
                     Forms\Components\Section::make([
                         Forms\Components\FileUpload::make('image')
@@ -75,6 +78,9 @@ class ProductResource extends Resource implements HasShieldPermissions
                     ->label('Harga')
                     ->money('IDR')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('stock')
+                    ->label('Stok Barang')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('description')
                     ->label('Deskripsi')
                     ->searchable()
@@ -92,11 +98,9 @@ class ProductResource extends Resource implements HasShieldPermissions
                 //
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\ActionGroup::make([
-                    Tables\Actions\EditAction::make(),
-                    Tables\Actions\DeleteAction::make(),
-                ]),
+                // Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

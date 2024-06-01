@@ -10,6 +10,7 @@ use Faker\Core\Color;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\Colors\Color as ColorsColor;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -52,9 +53,9 @@ class CategoryResource extends Resource implements HasShieldPermissions
                     ->label('Nama')
                     ->searchable(),
                 Tables\Columns\IconColumn::make('is_expense')
-                    ->label('Tipe')
+                    ->label('Tipe Kategori')
                     ->falseIcon('heroicon-o-arrow-down')
-                    ->falseColor('success')
+                    ->falseColor(ColorsColor::Sky)
                     ->trueIcon('heroicon-o-arrow-up')
                     ->trueColor('danger')
                     ->boolean(),

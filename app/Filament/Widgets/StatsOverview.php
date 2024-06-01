@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Models\Customer;
 use App\Models\Transaction;
 use BezhanSalleh\FilamentShield\Traits\HasWidgetShield;
+use Filament\Support\Colors\Color;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -25,7 +26,7 @@ class StatsOverview extends BaseWidget
             $descriptionIcon = 'heroicon-o-arrow-down';
         } else {
             $description = 'are profitable';
-            $color = 'success';
+            $color = Color::Sky;
             $descriptionIcon = 'heroicon-m-arrow-trending-up';
         }
 
@@ -37,7 +38,7 @@ class StatsOverview extends BaseWidget
             stat::make('Total Pemasukan', $income)
                 ->description('pemasukan')
                 ->descriptionIcon('heroicon-o-arrow-down')
-                ->color('success'),
+                ->color(Color::Sky),
             stat::make('Selisih', $difference)
                 ->description($description)
                 ->descriptionIcon($descriptionIcon)

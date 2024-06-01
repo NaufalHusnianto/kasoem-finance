@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
+use Filament\Support\Colors\Color;
 use Illuminate\Support\Facades\Auth;
 
 class TransactionResource extends Resource implements HasShieldPermissions
@@ -35,9 +36,11 @@ class TransactionResource extends Resource implements HasShieldPermissions
                 Forms\Components\Group::make([
                     Forms\Components\Section::make([
                         Forms\Components\TextInput::make('name')
+                            ->label('Nama Transaksi')
                             ->required()
                             ->maxLength(255),
                         Forms\Components\Select::make('category_id')
+                            ->label('Kategori')
                             ->relationship('category', 'name')
                             ->required()
                             ->reactive()
@@ -49,21 +52,24 @@ class TransactionResource extends Resource implements HasShieldPermissions
                                 return $query->pluck('name', 'id');
                             })
                             ->afterStateHydrated(function ($state, callable $set) {
-                                $category = \App\Models\Category::find($state);
+                                $category = Category::find($state);
                                 $set('is_order', $category ? $category->name === 'Pesanan' : false);
                             })
                             ->afterStateUpdated(function ($state, callable $set) {
-                                $category = \App\Models\Category::find($state);
+                                $category = Category::find($state);
                                 $set('is_order', $category ? $category->name === 'Pesanan' : false);
                             }),
                         Forms\Components\TextInput::make('amount')
+                            ->label('Jumlah Nominal')
                             ->required()
                             ->numeric()
                             ->visible(fn ($get) => !$get('is_order')),
                         Forms\Components\Textarea::make('note')
+                            ->label('Catatan')
                             ->required()
                             ->columnSpanFull(),
                         Forms\Components\FileUpload::make('image')
+                            ->label('Image (Optional)')
                             ->image()
                             ->imageEditor(),
                     ]),
@@ -80,9 +86,11 @@ class TransactionResource extends Resource implements HasShieldPermissions
                                     $user->id => $user->name,
                                 ]),
                             Forms\Components\Select::make('customer_id')
+                                ->label('Pelanggan')
                                 ->relationship('customer', 'name')
                                 ->searchable(),
                             Forms\Components\TextInput::make('number')
+                                ->label('Nomor Transaksi')
                                 ->default('OR-' . random_int(100000, 9999999))
                                 ->disabled()
                                 ->dehydrated(),
@@ -92,22 +100,24 @@ class TransactionResource extends Resource implements HasShieldPermissions
                         ->schema([
                             // form input barang
                             Forms\Components\Repeater::make('items')
+                                ->label('Item Pembelian')
                                 ->relationship()
                                 ->schema([
                                     Forms\Components\Select::make('product_id')
-                                        ->label('Product')
+                                        ->label('Produk')
                                         ->options(Product::query()->pluck('name', 'id'))
                                         ->required()
                                         ->reactive()
                                         ->afterStateUpdated(fn ($state, Forms\Set $set) =>
                                         $set('unit_price', Product::find($state)?->price ?? 0)),
                                     Forms\Components\TextInput::make('quantity')
+                                        ->label('Jumlah')
                                         ->numeric()
                                         ->live()
                                         ->dehydrated()
                                         ->required(),
                                     Forms\Components\TextInput::make('unit_price')
-                                        ->label('Unit Price')
+                                        ->label('Harga Satuan')
                                         ->disabled()
                                         ->dehydrated()
                                         ->numeric()
@@ -173,25 +183,30 @@ class TransactionResource extends Resource implements HasShieldPermissions
             })
             ->columns([
                 Tables\Columns\TextColumn::make('name')
+                    ->label('Nama Transaksi')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('category.name')
+                    ->label('Kategori')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\IconColumn::make('category.is_expense')
                     ->label('Tipe')
                     ->falseIcon('heroicon-o-arrow-down')
-                    ->falseColor('success')
+                    ->falseColor(Color::Sky)
                     ->trueIcon('heroicon-o-arrow-up')
                     ->trueColor('danger')
                     ->boolean(),
                 Tables\Columns\TextColumn::make('amount')
+                    ->label('Jumlah Nominal')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('user.name')
+                    ->label('Pengguna')
                     ->numeric()
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: false),
                 Tables\Columns\TextColumn::make('customer.name')
+                    ->label('Pelanggan')
                     ->numeric()
                     ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -216,8 +231,11 @@ class TransactionResource extends Resource implements HasShieldPermissions
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                ExportTransactionsToPdf::make('exportTransactionsToPdf')->color('success'),
+                ExportTransactionsToPdf::make('exportTransactionsToPdf')->color(Color::Sky)->label('Cetak'),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
