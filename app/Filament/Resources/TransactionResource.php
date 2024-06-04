@@ -8,6 +8,7 @@ use App\Filament\Resources\TransactionResource\RelationManagers;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\Category;
+use App\Models\Customer;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -47,7 +48,7 @@ class TransactionResource extends Resource implements HasShieldPermissions
                             ->options(function () use ($isKaryawan) {
                                 $query = Category::query();
                                 if ($isKaryawan) {
-                                    $query->where('name', 'Pesanan');
+                                    $query->whereIn('name', ['Pesanan', 'Restock']);
                                 }
                                 return $query->pluck('name', 'id');
                             })
@@ -87,7 +88,7 @@ class TransactionResource extends Resource implements HasShieldPermissions
                                 ]),
                             Forms\Components\Select::make('customer_id')
                                 ->label('Pelanggan')
-                                ->relationship('customer', 'name')
+                                ->options(Customer::query()->pluck('name', 'id'))
                                 ->searchable(),
                             Forms\Components\TextInput::make('number')
                                 ->label('Nomor Transaksi')
@@ -106,6 +107,7 @@ class TransactionResource extends Resource implements HasShieldPermissions
                                     Forms\Components\Select::make('product_id')
                                         ->label('Produk')
                                         ->options(Product::query()->pluck('name', 'id'))
+                                        ->searchable()
                                         ->required()
                                         ->reactive()
                                         ->afterStateUpdated(fn ($state, Forms\Set $set) =>
@@ -180,6 +182,9 @@ class TransactionResource extends Resource implements HasShieldPermissions
                     $userId = Auth::user()->id;
                     $query->where('user_id', $userId);
                 }
+
+                // Eager loading relationships
+                $query->with(['category', 'user', 'customer']);
             })
             ->columns([
                 Tables\Columns\TextColumn::make('name')

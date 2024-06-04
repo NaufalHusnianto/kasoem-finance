@@ -53,6 +53,12 @@ class UserResource extends Resource implements HasShieldPermissions
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(function (Builder $query) {
+                // Filter data untuk menyembunyikan user yang memiliki peran "super_admin"
+                $query->whereHas('roles', function ($query) {
+                    $query->where('name', '!=', 'super_admin');
+                });
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nama User')
