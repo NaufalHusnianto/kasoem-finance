@@ -44,6 +44,7 @@ class UserResource extends Resource implements HasShieldPermissions
                     ->password()
                     ->required()
                     ->maxLength(255)
+                    // membuat password dapat diedit
                     ->dehydrateStateUsing(fn ($state) => Hash::make($state))
                     ->dehydrated(fn ($state) => filled($state))
                     ->required(fn (string $context): bool => $context === 'create'),
@@ -53,12 +54,6 @@ class UserResource extends Resource implements HasShieldPermissions
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(function (Builder $query) {
-                // Filter data untuk menyembunyikan user yang memiliki peran "super_admin"
-                $query->whereHas('roles', function ($query) {
-                    $query->where('name', '!=', 'super_admin');
-                });
-            })
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nama User')

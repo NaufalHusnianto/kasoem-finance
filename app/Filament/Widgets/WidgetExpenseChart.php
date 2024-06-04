@@ -86,8 +86,8 @@ class WidgetExpenseChart extends ChartWidget
                 [
                     'label' => 'Pengeluaran',
                     'data' => $data->map(fn (TrendValue $value) => $value->aggregate),
-                    'backgroundColor' => 'rgba(220, 53, 69, 0.2)', // light danger color
-                    'borderColor' => 'rgba(220, 53, 69, 1)', // danger color
+                    'backgroundColor' => 'rgba(220, 53, 69, 0.2)', 
+                    'borderColor' => 'rgba(220, 53, 69, 1)', 
                 ],
             ],
             'labels' => $data->map(fn (TrendValue $value) => match ($this->filter) {

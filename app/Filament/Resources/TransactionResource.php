@@ -46,6 +46,7 @@ class TransactionResource extends Resource implements HasShieldPermissions
                             ->required()
                             ->reactive()
                             ->options(function () use ($isKaryawan) {
+                                // jika user yang login adalah karyawan maka untuk kategori transaksi yang muncul hanya pesanan dan restock
                                 $query = Category::query();
                                 if ($isKaryawan) {
                                     $query->whereIn('name', ['Pesanan', 'Restock']);
@@ -53,6 +54,7 @@ class TransactionResource extends Resource implements HasShieldPermissions
                                 return $query->pluck('name', 'id');
                             })
                             ->afterStateHydrated(function ($state, callable $set) {
+                                // merubah nilai is_order menjadi true sehingga memunculkan form pesanan jika kategori yang dipilih adalah pesanan
                                 $category = Category::find($state);
                                 $set('is_order', $category ? $category->name === 'Pesanan' : false);
                             })
@@ -110,6 +112,7 @@ class TransactionResource extends Resource implements HasShieldPermissions
                                         ->searchable()
                                         ->required()
                                         ->reactive()
+                                        // setelah form nama produk terisi maka akan otomatis memunculkan unit_price ke layar
                                         ->afterStateUpdated(fn ($state, Forms\Set $set) =>
                                         $set('unit_price', Product::find($state)?->price ?? 0)),
                                     Forms\Components\TextInput::make('quantity')
@@ -129,6 +132,7 @@ class TransactionResource extends Resource implements HasShieldPermissions
                                     Forms\Components\Placeholder::make('sub_total_price')
                                         ->label('Sub Total Harga')
                                         ->content(function ($get) {
+                                            // mengembalikan nilai subtotal dari hasil kali uni_price dikali quantity
                                             return intval($get('quantity')) * floatval($get('unit_price'));
                                         })
                                     ]),
@@ -176,6 +180,7 @@ class TransactionResource extends Resource implements HasShieldPermissions
     {
         return $table
             ->modifyQueryUsing(function (Builder $query) {
+                // jika user yang login karyawan maka data transaksi yang muncul hanya dengan data yang meiliki user dengan nama karyawan
                 $isKaryawan = Auth::user()->hasRole('Karyawan');
 
                 if ($isKaryawan) {
@@ -187,6 +192,9 @@ class TransactionResource extends Resource implements HasShieldPermissions
                 $query->with(['category', 'user', 'customer']);
             })
             ->columns([
+                Tables\Columns\TextColumn::make('number')
+                    ->label('Nomor Transaksi')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('name')
                     ->label('Nama Transaksi')
                     ->searchable(),
